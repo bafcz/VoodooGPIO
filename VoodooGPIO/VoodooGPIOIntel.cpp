@@ -282,7 +282,7 @@ void VoodooGPIOIntel::intel_gpio_irq_mask_unmask(unsigned pin, bool mask) {
         gpp_offset = padgroup_offset(padgrp, pin);
 
         reg = community->regs + community->ie_offset + gpp * 4;
-        is = community->regs + GPI_IS + gpp * 4;
+        is = community->regs + community->is_offset + gpp * 4;
 
         /* Clear interrupt status first to avoid unexpected interrupt */
         writel(static_cast<UInt32>(BIT(gpp_offset)), is);
@@ -490,7 +490,7 @@ void VoodooGPIOIntel::intel_gpio_irq_init() {
         for (unsigned gpp = 0; gpp < community->ngpps; gpp++) {
             /* Mask and clear all interrupts */
             writel(0, base + community->ie_offset + gpp * 4);
-            writel(0xffff, base + GPI_IS + gpp * 4);
+            writel(0xffff, base + community->is_offset + gpp * 4);
         }
     }
 }
@@ -645,6 +645,10 @@ bool VoodooGPIOIntel::start(IOService *provider) {
 
         IOVirtualAddress regs = community->mmap->getVirtualAddress();
         community->regs = regs;
+
+        /* Default GPI_IS offset if not specified by platform data */
+        if (!community->is_offset)
+            community->is_offset = GPI_IS;
 
         /*
          * Determine community features based on the revision if
@@ -810,7 +814,7 @@ void VoodooGPIOIntel::intel_gpio_community_irq_handler(struct intel_community *c
 
         unsigned long pending, enabled;
 
-        pending = readl(community->regs + GPI_IS + padgrp->reg_num * 4);
+        pending = readl(community->regs + community->is_offset + padgrp->reg_num * 4);
         enabled = readl(community->regs + community->ie_offset +
                         padgrp->reg_num * 4);
 
@@ -853,7 +857,7 @@ void VoodooGPIOIntel::intel_gpio_pin_irq_handler(unsigned hw_pin) {
     }
 
     unsigned long pending, enabled;
-    IOVirtualAddress pending_address = community->regs + GPI_IS + pad_group->reg_num * 4;
+    IOVirtualAddress pending_address = community->regs + community->is_offset + pad_group->reg_num * 4;
     pending = readl(pending_address);
     enabled = readl(community->regs + community->ie_offset + pad_group->reg_num * 4);
 

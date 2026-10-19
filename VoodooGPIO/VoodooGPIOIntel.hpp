@@ -96,6 +96,7 @@ struct intel_community {
     unsigned padcfglock_offset;
     unsigned hostown_offset;
     unsigned ie_offset;
+    unsigned is_offset;
     unsigned pin_base;
     unsigned gpp_size;
     unsigned gpp_num_padown_regs;
