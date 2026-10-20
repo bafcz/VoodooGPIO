@@ -603,7 +603,8 @@ bool VoodooGPIOIntel::init(OSDictionary* properties) {
 }
 
 bool VoodooGPIOIntel::start(IOService *provider) {
-    if (!npins || !ngroups || !nfunctions || !ncommunities) {
+    // GPIO-only platforms do not need pin-mux groups or functions.
+    if (!pins || !npins || !communities || !ncommunities) {
         IOLog("%s::Missing Platform Data! Aborting!\n", getName());
         return false;
     }
